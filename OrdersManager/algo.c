@@ -46,10 +46,10 @@ Order* search_order (int table_id,Order* head){
     return NULL;
 }
 // Hàm in ra các order 
-void printOrder(int table_id,order* head){
+void print_order(int table_id,order* head){
     
 }
-//Up coming
+
 int main() {
 	// your code goes here
 	
