@@ -1,4 +1,3 @@
-//Up coming
 #include <unordered_map>
 #include <cstdio>
 #include <cstdlib>
@@ -21,7 +20,7 @@ typedef struct MFUCache {
     Node* tail;
 } MFUCache;
 
-// Hàm khởi tạo MFU cache 
+// Khởi tạo cache
 MFUCache* initCache(int capacity){
     MFUCache* cache = (MFUCache*)malloc(sizeof(MFUCache));
     cache->capacity = capacity;
@@ -30,7 +29,7 @@ MFUCache* initCache(int capacity){
     return cache;
 }
 
-// In cache (Debug)
+// In cache debug
 void printCache(MFUCache* cache) {
     Node* cur = cache->head;
     printf("Cache: ");
@@ -41,22 +40,18 @@ void printCache(MFUCache* cache) {
     printf("\n");
 }
 
-// Ham get 
+// Lấy giá trị, tăng tần suất
 char* get(MFUCache* cache, int key) {
     auto it = cache->cacheMap.find(key);
     if (it == cache->cacheMap.end()) {
-        // Không tìm thấy key
         return NULL;
     }
-
-    // Tăng tần suất truy cập
     cache->freqMap[key]++;
-
-    // Trả về giá trị
     return it->second->value;
 }
+
+// Thêm hoặc cập nhật cache
 void put(MFUCache* cache, int key, const char* value) {
-    // Nếu key đã tồn tại → cập nhật value và tăng tần suất
     if (cache->cacheMap.find(key) != cache->cacheMap.end()) {
         Node* node = cache->cacheMap[key];
         snprintf(node->value, MAX_LEN, "%s", value);
@@ -64,11 +59,10 @@ void put(MFUCache* cache, int key, const char* value) {
         return;
     }
 
-    // Nếu cache đầy → tìm và xóa phần tử MFU (theo FIFO nếu cần)
     if (cache->size >= cache->capacity) {
         int maxFreq = -1;
         Node* nodeToRemove = NULL;
-        Node* cur = cache->tail;  // duyệt từ node cũ nhất
+        Node* cur = cache->tail;
 
         while (cur) {
             int freq = cache->freqMap[cur->key];
@@ -79,7 +73,12 @@ void put(MFUCache* cache, int key, const char* value) {
             cur = cur->prev;
         }
 
-        // Xóa node khỏi danh sách liên kết đôi
+        if (nodeToRemove == NULL) {
+            printf("Error: No node to remove found!\n");
+            return;
+        }
+
+        // Xóa node khỏi danh sách
         if (nodeToRemove->prev)
             nodeToRemove->prev->next = nodeToRemove->next;
         if (nodeToRemove->next)
@@ -89,7 +88,7 @@ void put(MFUCache* cache, int key, const char* value) {
         if (cache->tail == nodeToRemove)
             cache->tail = nodeToRemove->prev;
 
-        // Xóa khỏi map
+        // Xóa khỏi map và giải phóng bộ nhớ
         cache->cacheMap.erase(nodeToRemove->key);
         cache->freqMap.erase(nodeToRemove->key);
         free(nodeToRemove);
@@ -115,41 +114,30 @@ void put(MFUCache* cache, int key, const char* value) {
 }
 
 int main() {
-    // Khởi tạo cache có capacity = 3
     MFUCache* cache = initCache(3);
 
-    // Thêm một số phần tử
-    put(cache, 1, "one");
-    put(cache, 2, "two");
-    put(cache, 3, "three");
-    printCache(cache);  // Cache: (3,three) (2,two) (1,one)
+    put(cache, 1, "Google");
+    put(cache, 2, "youtube");
+    put(cache, 3, "Zalo");
+    printCache(cache);
 
-    // Truy cập 2 lần key = 2 → tăng tần suất
     get(cache, 2);
     get(cache, 2);
 
-    // Truy cập 3 lần key = 1 → tần suất cao hơn key 2
     get(cache, 1);
     get(cache, 1);
     get(cache, 1);
 
-    // Truy cập key = 3 1 lần
     get(cache, 3);
 
-    // Cache hiện tại:
-    // key=1: freq=4
-    // key=2: freq=3
-    // key=3: freq=2
+    put(cache, 4, "Chat GPT");
+    printCache(cache);
 
-    // Thêm phần tử mới → cache đầy → xóa key=1 (tần suất cao nhất)
-    put(cache, 4, "four");
-    printCache(cache);  // Expect: key=4 xuất hiện, key=1 bị xóa
+    char* r2 = get(cache, 2);
+    char* r1 = get(cache, 1);
+    printf("get(2) = %s\n", r2 ? r2 : "(null)");
+    printf("get(1) = %s\n", r1 ? r1 : "(null)");
 
-    // Thử lấy giá trị từ cache
-    printf("get(2) = %s\n", get(cache, 2)); // Expect: two
-    printf("get(1) = %s\n", get(cache, 1)); // Expect: (null)
-
-    // Thêm 1 key mới nữa → xóa key=2 (vì sau đó là freq cao nhất)
     put(cache, 5, "five");
     printCache(cache);
 
