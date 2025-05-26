@@ -113,3 +113,45 @@ void put(MFUCache* cache, int key, const char* value) {
     cache->freqMap[key] = 1;
     cache->size++;
 }
+
+int main() {
+    // Khởi tạo cache có capacity = 3
+    MFUCache* cache = initCache(3);
+
+    // Thêm một số phần tử
+    put(cache, 1, "one");
+    put(cache, 2, "two");
+    put(cache, 3, "three");
+    printCache(cache);  // Cache: (3,three) (2,two) (1,one)
+
+    // Truy cập 2 lần key = 2 → tăng tần suất
+    get(cache, 2);
+    get(cache, 2);
+
+    // Truy cập 3 lần key = 1 → tần suất cao hơn key 2
+    get(cache, 1);
+    get(cache, 1);
+    get(cache, 1);
+
+    // Truy cập key = 3 1 lần
+    get(cache, 3);
+
+    // Cache hiện tại:
+    // key=1: freq=4
+    // key=2: freq=3
+    // key=3: freq=2
+
+    // Thêm phần tử mới → cache đầy → xóa key=1 (tần suất cao nhất)
+    put(cache, 4, "four");
+    printCache(cache);  // Expect: key=4 xuất hiện, key=1 bị xóa
+
+    // Thử lấy giá trị từ cache
+    printf("get(2) = %s\n", get(cache, 2)); // Expect: two
+    printf("get(1) = %s\n", get(cache, 1)); // Expect: (null)
+
+    // Thêm 1 key mới nữa → xóa key=2 (vì sau đó là freq cao nhất)
+    put(cache, 5, "five");
+    printCache(cache);
+
+    return 0;
+}
